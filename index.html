@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Pressure Ulcer Prevention System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0a0d12;
+    --bg2:      #10141c;
+    --bg3:      #181e2a;
+    --border:   #1e2736;
+    --accent:   #00c8a0;
+    --accent2:  #0080ff;
+    --warn:     #f59e0b;
+    --danger:   #ef4444;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6rem 4rem 6rem 6rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.4s forwards;
+  }
+
+  .hero-title span {
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 440px;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.6s forwards;
+  }
+
+  .hero-badges {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.8s forwards;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted);
+  }
+
+  .badge.green { border-color: var(--accent); color: var(--accent); }
+  .badge.blue  { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ---------- HEATMAP CANVAS (hero right) ---------- */
+  .hero-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+  }
+
+  .mat-container {
+    position: relative;
+    opacity: 0;
+    animation: fadeIn 1s ease 1s forwards;
+  }
+
+  .mat-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  #heatmap-canvas {
+    display: block;
+    border: 1px solid var(--border);
+  }
+
+  .mat-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.8rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  .legend-bar {
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, #0f2a44, #0080ff, #00c8a0, #f59e0b, #ef4444);
+    margin-top: 0.4rem;
+    border-radius: 2px;
+  }
+
+  .pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--danger);
+    animation: pulseRing 2s ease-out infinite;
+    pointer-events: none;
+  }
+
+  /* ---------- SCAN LINE ANIMATION ---------- */
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--accent), transparent);
+    opacity: 0.4;
+    animation: scanLine 3s linear infinite;
+    pointer-events: none;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section {
+    padding: 6rem 6rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    max-width: 600px;
+    margin-bottom: 3rem;
+  }
+
+  /* ---------- ARCHITECTURE FLOW ---------- */
+  .arch-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 700px;
+  }
+
+  .arch-layer {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 1.2rem 1.5rem;
+    position: relative;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .arch-layer.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .arch-layer + .arch-layer {
+    border-top: none;
+  }
+
+  .arch-layer:first-child { border-radius: 4px 4px 0 0; }
+  .arch-layer:last-child  { border-radius: 0 0 4px 4px; }
+
+  .arch-layer-name {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .arch-layer-name.teal   { color: var(--accent); }
+  .arch-layer-name.blue   { color: var(--accent2); }
+  .arch-layer-name.amber  { color: var(--warn); }
+  .arch-layer-name.red    { color: var(--danger); }
+
+  .arch-components {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .arch-chip {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    padding: 0.25rem 0.7rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+  }
+
+  .arch-arrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  .arch-arrow::before {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .arch-arrow::after {
+    content: '';
+    width: 0; height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 6px solid var(--border);
+  }
+
+  /* ---------- COMPONENT TABLE ---------- */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .comp-table th {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .comp-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .comp-table tr:last-child td { border-bottom: none; }
+
+  .comp-table tr:hover td { background: var(--bg2); }
+
+  .comp-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .comp-desc { color: var(--muted); font-size: 0.8rem; }
+
+  /* ---------- ADVANTAGES GRID ---------- */
+  .adv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .adv-card {
+    background: var(--bg2);
+    padding: 2rem;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .adv-card.visible { opacity: 1; }
+  .adv-card:hover { background: var(--bg3); }
+
+  .adv-number {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .adv-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .adv-desc { font-size: 0.8rem; color: var(--muted); }
+
+  /* ---------- USERS ---------- */
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .user-card {
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    background: var(--bg2);
+    border-radius: 4px;
+  }
+
+  .user-role {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.5rem;
+  }
+
+  .user-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .user-desc { font-size: 0.8rem; color: var(--muted); }
+
+  /* ---------- LIVE RISK METER ---------- */
+  .meter-section {
+    background: var(--bg2);
+  }
+
+  .meters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .meter-card {
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    border-radius: 4px;
+    background: var(--bg);
+  }
+
+  .meter-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+
+  .meter-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+
+  .meter-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .meter-value {
+    font-family: var(--mono);
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+
+  .meter-status {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    margin-top: 0.3rem;
+  }
+
+  /* ---------- FUTURE SECTION ---------- */
+  .future-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 640px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .future-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .future-item:last-child { border-bottom: none; }
+
+  .future-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--accent);
+    min-width: 24px;
+    padding-top: 0.1rem;
+  }
+
+  .future-text { color: var(--text); }
+  .future-sub  { color: var(--muted); font-size: 0.75rem; margin-top: 0.2rem; }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    padding: 2rem 6rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a { color: var(--muted); text-decoration: none; }
+  .footer-links a:hover { color: var(--accent); }
+
+  /* ---------- KEYFRAMES ---------- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes pulseRing {
+    0%   { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  @keyframes scanLine {
+    0%   { top: 0%; }
+    100% { top: 100%; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { min-height: 320px; }
+    section { padding: 4rem 2rem; }
+    .hero-left { padding: 4rem 2rem; }
+    footer { padding: 2rem; flex-direction: column; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">IoT + Embedded AI + Healthcare</div>
+    <h1 class="hero-title">
+      Smart Pressure<br>
+      Ulcer <span>Prevention</span><br>
+      System
+    </h1>
+    <p class="hero-sub">
+      A closed-loop sensor mat with edge AI inference and autonomous
+      micro-pneumatic actuation that prevents bedsores before they form.
+      No nurse intervention required.
+    </p>
+    <div class="hero-badges">
+      <span class="badge green">FPGA Edge AI</span>
+      <span class="badge green">STM32H7</span>
+      <span class="badge blue">ESP32-S3</span>
+      <span class="badge blue">Federated Learning</span>
+      <span class="badge">MIT License</span>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="scan-line"></div>
+    <div class="mat-container">
+      <div class="mat-label">Live pressure heatmap simulation -- 8x8 zone grid</div>
+      <canvas id="heatmap-canvas" width="280" height="280"></canvas>
+      <div id="pulse-container"></div>
+      <div class="mat-legend">
+        <span>Safe</span>
+        <div style="flex:1; padding: 0 0.8rem;">
+          <div class="legend-bar"></div>
+        </div>
+        <span>Critical</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE RISK METERS -->
+<section class="meter-section">
+  <div class="section-label">Real-time monitoring</div>
+  <h2 class="section-title">Zone risk indicators</h2>
+  <p class="section-desc">
+    Each metric is sampled at 10 Hz, windowed over 5 minutes, and fed into the
+    on-device CNN inference engine running on the FPGA.
+  </p>
+  <div class="meters-grid" id="meters-grid"></div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section>
+  <div class="section-label">System design</div>
+  <h2 class="section-title">Architecture layers</h2>
+  <p class="section-desc">
+    Four hardware and software layers work together: sensors capture raw data,
+    the FPGA fuses and infers, cloud aggregates and trains, and the dashboard alerts.
+  </p>
+
+  <div class="arch-flow">
+    <div class="arch-layer" data-delay="0">
+      <div class="arch-layer-name teal">Sensor mat</div>
+      <div class="arch-components">
+        <span class="arch-chip">32x32 capacitive array</span>
+        <span class="arch-chip">MLX90640 thermopile</span>
+        <span class="arch-chip">MAX30102 PPG x8</span>
+      </div>
+    </div>
+    <div class="arch-arrow">SPI / I2C at 10 Hz</div>
+    <div class="arch-layer" data-delay="100">
+      <div class="arch-layer-name blue">Edge AI controller</div>
+      <div class="arch-components">
+        <span class="arch-chip">Lattice CrossLink-NX FPGA</span>
+        <span class="arch-chip">STM32H7 + FreeRTOS</span>
+        <span class="arch-chip">Pneumatic actuator driver</span>
+      </div>
+    </div>
+    <div class="arch-arrow">MQTT over Wi-Fi</div>
+    <div class="arch-layer" data-delay="200">
+      <div class="arch-layer-name amber">Cloud analytics</div>
+      <div class="arch-components">
+        <span class="arch-chip">FastAPI + InfluxDB</span>
+        <span class="arch-chip">Federated learning (Flower)</span>
+        <span class="arch-chip">CDSCO compliance audit</span>
+      </div>
+    </div>
+    <div class="arch-arrow">WebSocket</div>
+    <div class="arch-layer" data-delay="300">
+      <div class="arch-layer-name red">Nurse dashboard</div>
+      <div class="arch-components">
+        <span class="arch-chip">Live heatmap</span>
+        <span class="arch-chip">Risk alerts</span>
+        <span class="arch-chip">Actuation log</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section>
+  <div class="section-label">Hardware and software</div>
+  <h2 class="section-title">Components and rationale</h2>
+  <p class="section-desc">
+    Every component was selected for a specific reason, not availability.
+    Medical-grade sensing, deterministic real-time control, and privacy-first cloud.
+  </p>
+
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Role</th>
+        <th>Why this part</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="comp-name">32x32 cap. array</span></td>
+        <td>Pressure mapping</td>
+        <td><span class="comp-desc">1024-cell resolution gives per-zone granularity impossible with commercial FSR mats. Detects localized pressure spikes before clinical thresholds.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">MLX90640</span></td>
+        <td>Skin temperature IR</td>
+        <td><span class="comp-desc">Non-contact 32x24 IR array via I2C. Detects skin temperature differential caused by reduced perfusion before visual symptoms appear.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">MAX30102 (x8)</span></td>
+        <td>Tissue oxygenation</td>
+        <td><span class="comp-desc">Reflectance PPG nodes at high-risk anatomical zones. SpO2 drop at contact point is the earliest measurable biological signal of ischemia.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">Lattice CrossLink-NX</span></td>
+        <td>CNN inference engine</td>
+        <td><span class="comp-desc">Low-power FPGA with deterministic sub-millisecond inference latency. Runs quantized 8-bit CNN with no OS jitter. Parallel sensor stream processing.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">STM32H7</span></td>
+        <td>System controller</td>
+        <td><span class="comp-desc">480 MHz Cortex-M7 with dual-core, hardware FPU, 1 MB RAM. Runs FreeRTOS with PID control, safety interlocks, and telemetry serialization.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">ESP32-S3</span></td>
+        <td>Wireless gateway</td>
+        <td><span class="comp-desc">Dual-mode Wi-Fi + BLE 5.2. Handles MQTT and BLE simultaneously without burdening the real-time controller. Proven hospital Wi-Fi compatibility.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">Flower (flwr)</span></td>
+        <td>Federated learning</td>
+        <td><span class="comp-desc">Privacy-preserving model training. Gradient aggregation across hospital beds without sharing raw patient sensor data. HIPAA and DPDP Act aligned.</span></td>
+      </tr>
+      <tr>
+        <td><span class="comp-name">FastAPI + InfluxDB</span></td>
+        <td>Cloud backend</td>
+        <td><span class="comp-desc">Async Python backend with native WebSocket support. InfluxDB handles 10 Hz time-series telemetry from hundreds of beds efficiently.</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ADVANTAGES -->
+<section>
+  <div class="section-label">Value proposition</div>
+  <h2 class="section-title">Why this system matters</h2>
+  <p class="section-desc">
+    Compared to manual repositioning protocols and existing commercial smart mattresses.
+  </p>
+
+  <div class="adv-grid">
+    <div class="adv-card">
+      <div class="adv-number">20-40</div>
+      <div class="adv-title">Minutes of advance warning</div>
+      <div class="adv-desc">The CNN predicts ischemia onset before tissue damage occurs, giving time for automated or manual intervention.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-number">3s</div>
+      <div class="adv-title">Autonomous repositioning</div>
+      <div class="adv-desc">Micro-pneumatic bladders redistribute pressure in under 3 seconds without waking the patient or requiring nurse presence.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-number">8x</div>
+      <div class="adv-title">Lower cost than alternatives</div>
+      <div class="adv-desc">Bill of materials under Rs. 35,000 per mat versus Rs. 2.5 lakh for imported clinical-grade smart mattresses.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-number">0</div>
+      <div class="adv-title">Raw patient data leaves the bed</div>
+      <div class="adv-desc">Federated learning shares only model gradients, not sensor readings. Compliant with DPDP Act 2023 and pre-aligned with CDSCO medical device regulations.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-number">72h</div>
+      <div class="adv-title">Offline operation capability</div>
+      <div class="adv-desc">Edge AI runs entirely on-device. Cloud loss does not disable sensing, inference, or actuation. Designed for rural and power-unstable hospital environments.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-number">+</div>
+      <div class="adv-title">Model improves over time</div>
+      <div class="adv-desc">Each mat contributes to a shared model that becomes more accurate for specific patient profiles: diabetic, post-surgical, elderly, and paediatric.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TARGET USERS -->
+<section>
+  <div class="section-label">Stakeholders</div>
+  <h2 class="section-title">Who this is built for</h2>
+  <p class="section-desc">
+    Four distinct user groups interact with different layers of the system.
+  </p>
+
+  <div class="users-grid">
+    <div class="user-card">
+      <div class="user-role">Primary user</div>
+      <div class="user-name">ICU and ward nurses</div>
+      <div class="user-desc">See the live heatmap dashboard, receive risk alerts, override actuation, and review repositioning logs per shift.</div>
+    </div>
+    <div class="user-card">
+      <div class="user-role">Technical user</div>
+      <div class="user-name">Biomedical engineers</div>
+      <div class="user-desc">Deploy and maintain the hardware, configure thresholds, integrate with existing nurse call systems and hospital HIS.</div>
+    </div>
+    <div class="user-card">
+      <div class="user-role">Research user</div>
+      <div class="user-name">Clinical researchers</div>
+      <div class="user-desc">Access the InfluxDB time-series data for retrospective studies on pressure ulcer incidence, repositioning efficacy, and patient outcomes.</div>
+    </div>
+    <div class="user-card">
+      <div class="user-role">Developer</div>
+      <div class="user-name">Embedded and ML engineers</div>
+      <div class="user-desc">Build on the open firmware, adapt the CNN architecture, contribute new sensor fusion strategies, or port to different FPGA families.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FUTURE IMPROVEMENTS -->
+<section>
+  <div class="section-label">Roadmap</div>
+  <h2 class="section-title">Future improvements</h2>
+  <p class="section-desc">
+    The current system is a research prototype. These are the next engineering priorities.
+  </p>
+
+  <div class="future-list">
+    <div class="future-item">
+      <div class="future-num">01</div>
+      <div>
+        <div class="future-text">EMG muscle activity sensing</div>
+        <div class="future-sub">Detect patient self-repositioning via surface EMG electrodes and pause autonomous actuation to avoid counteracting the patient's own movement.</div>
+      </div>
+    </div>
+    <div class="future-item">
+      <div class="future-num">02</div>
+      <div>
+        <div class="future-text">EHR integration via HL7 FHIR</div>
+        <div class="future-sub">Pull patient risk factors (age, BMI, diabetes status, Braden score) from the hospital information system to adjust model thresholds per patient automatically.</div>
+      </div>
+    </div>
+    <div class="future-item">
+      <div class="future-num">03</div>
+      <div>
+        <div class="future-text">Custom ASIC for unit cost reduction</div>
+        <div class="future-sub">Replace the FPGA with a purpose-built ASIC to bring the per-mat cost below Rs. 8,000, enabling district hospital deployment at scale.</div>
+      </div>
+    </div>
+    <div class="future-item">
+      <div class="future-num">04</div>
+      <div>
+        <div class="future-text">Computer vision wound monitoring</div>
+        <div class="future-sub">Add a bedside camera with an edge CV model to track wound progression in patients who already have stage-1 ulcers, providing objective staging data to clinicians.</div>
+      </div>
+    </div>
+    <div class="future-item">
+      <div class="future-num">05</div>
+      <div>
+        <div class="future-text">Multi-ward triage dashboard</div>
+        <div class="future-sub">Aggregate risk scores across an entire floor or ward into a single priority-sorted view so charge nurses can allocate attention to the highest-risk patients first.</div>
+      </div>
+    </div>
+    <div class="future-item">
+      <div class="future-num">06</div>
+      <div>
+        <div class="future-text">Larger clinical dataset and validation study</div>
+        <div class="future-sub">Partner with a teaching hospital for a prospective clinical trial to validate prediction accuracy and obtain data required for CDSCO Class B device approval.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>Smart Pressure Ulcer Prevention System -- MIT License -- Research Prototype</div>
+  <div class="footer-links">
+    <a href="README.md">README</a>
+    <a href="docs/setup_guide.md">Setup</a>
+    <a href="docs/api_reference.md">API</a>
+    <a href="hardware/bom.csv">BOM</a>
+  </div>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ */
+/* Heatmap simulation                                                   */
+/* ------------------------------------------------------------------ */
+const canvas = document.getElementById('heatmap-canvas');
+const ctx    = canvas.getContext('2d');
+const GRID   = 8;
+const CELL   = canvas.width / GRID;
+
+/* Simulate a body lying on the mat: high pressure at center zones */
+const bodyZones = [
+  [3,3],[3,4],[4,3],[4,4],   // sacrum -- highest risk
+  [1,3],[1,4],[6,3],[6,4],   // heels
+  [0,3],[0,4],[7,3],[7,4],   // feet
+];
+
+let riskMap = Array.from({length: GRID}, () => Array(GRID).fill(0));
+let timeT   = 0;
+
+function riskToColor(r) {
+  /* interpolate through: safe(blue) -> caution(teal) -> high(amber) -> critical(red) */
+  if (r < 0.33) {
+    const t = r / 0.33;
+    return `rgba(${Math.round(15 + t*0)}, ${Math.round(42 + t*86)}, ${Math.round(68 + t*92)}, 0.9)`;
+  } else if (r < 0.66) {
+    const t = (r - 0.33) / 0.33;
+    return `rgba(${Math.round(15 + t*230)}, ${Math.round(128 + t*30)}, ${Math.round(160 - t*149)}, 0.9)`;
+  } else {
+    const t = (r - 0.66) / 0.34;
+    return `rgba(${Math.round(245)}, ${Math.round(158 - t*158)}, ${Math.round(11 - t*11)}, 0.9)`;
+  }
+}
+
+function updateRiskMap() {
+  timeT += 0.03;
+  /* Background noise */
+  for (let r = 0; r < GRID; r++)
+    for (let c = 0; c < GRID; c++)
+      riskMap[r][c] = 0.03 + 0.02 * Math.sin(timeT + r + c);
+
+  /* Body zones: oscillating pressure */
+  bodyZones.forEach(([r, c], i) => {
+    const base = [0.82, 0.78, 0.85, 0.80, 0.42, 0.38, 0.44, 0.40, 0.22, 0.20, 0.25, 0.21][i] || 0.5;
+    riskMap[r][c] = Math.min(1, base + 0.06 * Math.sin(timeT * 0.7 + i));
+  });
+}
+
+function drawHeatmap() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      const risk = riskMap[r][c];
+      ctx.fillStyle = riskToColor(risk);
+      ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+
+      /* Risk score text for high-risk zones */
+      if (risk > 0.6) {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = `500 ${Math.round(CELL * 0.22)}px IBM Plex Mono, monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(risk.toFixed(2), c * CELL + CELL/2, r * CELL + CELL/2);
+      }
+    }
+  }
+
+  /* Grid lines */
+  ctx.strokeStyle = 'rgba(10,13,18,0.6)';
+  ctx.lineWidth   = 1;
+  for (let i = 0; i <= GRID; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * CELL, 0);
+    ctx.lineTo(i * CELL, canvas.height);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * CELL);
+    ctx.lineTo(canvas.width, i * CELL);
+    ctx.stroke();
+  }
+}
+
+/* Pulse rings on critical zones */
+const pulseContainer = document.getElementById('pulse-container');
+
+function updatePulseRings() {
+  pulseContainer.innerHTML = '';
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      if (riskMap[r][c] > 0.78) {
+        const ring = document.createElement('div');
+        ring.className = 'pulse-ring';
+        const size = CELL * 0.6;
+        const cx = c * CELL + CELL/2;
+        const cy = r * CELL + CELL/2;
+        ring.style.cssText = `
+          width:${size}px; height:${size}px;
+          left:${cx - size/2}px; top:${cy - size/2}px;
+          position:absolute;
+        `;
+        pulseContainer.appendChild(ring);
+      }
+    }
+  }
+}
+
+function tick() {
+  updateRiskMap();
+  drawHeatmap();
+  if (Math.round(timeT * 33) % 20 === 0) updatePulseRings();
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ------------------------------------------------------------------ */
+/* Live risk meters                                                     */
+/* ------------------------------------------------------------------ */
+const ZONES = [
+  { name: 'Sacrum',      base: 0.83, color: '#ef4444' },
+  { name: 'Left heel',   base: 0.41, color: '#f59e0b' },
+  { name: 'Right heel',  base: 0.37, color: '#f59e0b' },
+  { name: 'Occipital',   base: 0.19, color: '#00c8a0' },
+  { name: 'Left elbow',  base: 0.22, color: '#00c8a0' },
+  { name: 'Right elbow', base: 0.14, color: '#0080ff' },
+];
+
+const grid = document.getElementById('meters-grid');
+
+ZONES.forEach((zone, i) => {
+  const card = document.createElement('div');
+  card.className = 'meter-card';
+  card.innerHTML = `
+    <div class="meter-label">${zone.name}</div>
+    <div class="meter-bar-bg">
+      <div class="meter-bar-fill" id="bar-${i}"
+           style="width:${zone.base*100}%; background:${zone.color};"></div>
+    </div>
+    <div class="meter-value" id="val-${i}" style="color:${zone.color}">
+      ${zone.base.toFixed(2)}
+    </div>
+    <div class="meter-status" id="sta-${i}" style="color:${zone.color}">
+      ${zone.base > 0.8 ? 'CRITICAL -- actuating' : zone.base > 0.6 ? 'HIGH -- alert sent' : zone.base > 0.3 ? 'CAUTION' : 'SAFE'}
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+function updateMeters() {
+  ZONES.forEach((zone, i) => {
+    const risk = Math.max(0, Math.min(1,
+      zone.base + 0.05 * Math.sin(Date.now() / 2000 + i)));
+    const bar  = document.getElementById(`bar-${i}`);
+    const val  = document.getElementById(`val-${i}`);
+    const sta  = document.getElementById(`sta-${i}`);
+    const col  = risk > 0.8 ? '#ef4444' : risk > 0.6 ? '#f59e0b' : risk > 0.3 ? '#00c8a0' : '#0080ff';
+    bar.style.width      = (risk * 100) + '%';
+    bar.style.background = col;
+    val.style.color      = col;
+    val.textContent      = risk.toFixed(2);
+    sta.style.color      = col;
+    sta.textContent      = risk > 0.8 ? 'CRITICAL -- actuating'
+                         : risk > 0.6 ? 'HIGH -- alert sent'
+                         : risk > 0.3 ? 'CAUTION' : 'SAFE';
+  });
+}
+
+setInterval(updateMeters, 1200);
+
+/* ------------------------------------------------------------------ */
+/* Scroll-triggered animations                                          */
+/* ------------------------------------------------------------------ */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el    = entry.target;
+      const delay = parseInt(el.dataset.delay || '0');
+      setTimeout(() => el.classList.add('visible'), delay);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.arch-layer, .adv-card').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
