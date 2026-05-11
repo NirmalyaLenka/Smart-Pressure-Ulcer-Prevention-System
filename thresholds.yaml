@@ -1,0 +1,20 @@
+risk_thresholds:
+  safe: 0.30
+  caution: 0.60
+  high_risk: 0.80
+  critical: 0.90
+
+actuation:
+  target_pressure_mmhg: 40
+  max_pressure_mmhg: 200
+  reposition_duration_sec: 180
+  cooldown_sec: 600
+
+alerts:
+  nurse_pager: true
+  sms_gateway: false
+  dashboard_popup: true
+
+telemetry:
+  interval_sec: 6
+  history_hours: 72
