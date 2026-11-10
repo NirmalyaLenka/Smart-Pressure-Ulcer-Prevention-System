@@ -348,6 +348,16 @@ Pull requests are welcome. For major changes, open an issue first to discuss the
 
 ---
 
+## Skills & technologies
+
+`C/C++` · `Python` · `HTML/CSS`
+
+
+## How it works
+
+Python source is present, including `quantize_model.py`. Review configuration and dependencies before running; use a virtual environment and follow the project's setup instructions.
+
+
 ## Maintenance & Audit
 
 - **Audit date:** 10 November 2026
