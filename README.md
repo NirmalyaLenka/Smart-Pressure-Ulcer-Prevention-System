@@ -87,7 +87,7 @@ No conventional `LICENSE` file is present in the checked-in root tree. Confirm l
 
 ## Maintenance & Audit
 
-- **Audit date:** 11 November 2026
+- **Audit date:** 18 November 2026
 - **Documentation status:** Repository files and setup claims reviewed; major integration gaps recorded.
 - **Verification status:** Documentation/source inspection only. No runtime, model, HDL, embedded, or clinical verification is claimed.
 - **Scope:** Source, firmware, model, and hardware behavior were not changed by this documentation update.
