@@ -91,3 +91,9 @@ No conventional `LICENSE` file is present in the checked-in root tree. Confirm l
 - **Documentation status:** Repository files and setup claims reviewed; major integration gaps recorded.
 - **Verification status:** Documentation/source inspection only. No runtime, model, HDL, embedded, or clinical verification is claimed.
 - **Scope:** Source, firmware, model, and hardware behavior were not changed by this documentation update.
+
+## Contact
+
+Maintained up to 25 November 2026.
+
+If you encounter any problems, please contact [carmodbhai@gmail.com](mailto:carmodbhai@gmail.com).
